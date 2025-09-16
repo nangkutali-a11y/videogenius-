@@ -26,8 +26,14 @@ jobs:
       - name: Install dependencies for functions (if any)
   run: |
     if [ -f functions/package.json ]; then
-      npm install --prefix functions
+      echo "Installing functions dependencies..."
+      cd functions
+      npm install
+      cd -
+    else
+      echo "No functions/package.json found — skipping dependency install."
     fi
+
 
 
       - name: Install firebase-tools
