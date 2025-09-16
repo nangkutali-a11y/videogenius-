@@ -24,17 +24,15 @@ jobs:
           node-version: 18
 
       - name: Install dependencies for functions (if any)
-  run: |
-    if [ -f functions/package.json ]; then
-      echo "Installing functions dependencies..."
-      cd functions
-      npm install
-      cd -
-    else
-      echo "No functions/package.json found — skipping dependency install."
-    fi
-
-
+        run: |
+          if [ -f functions/package.json ]; then
+            echo "Installing functions dependencies..."
+            cd functions
+            npm install
+            cd -
+          else
+            echo "No functions/package.json found - skipping dependency install."
+          fi
 
       - name: Install firebase-tools
         run: npm install -g firebase-tools
@@ -43,7 +41,5 @@ jobs:
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/gcloud-key.json
         run: |
-          # write service account to a temp file (auth action already made credentials available)
           echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > "${{ runner.temp }}/gcloud-key.json"
-          # use firebase-tools to deploy (project id below - replace if different)
           firebase deploy --only hosting,functions --project studio-5313059300-f1de0
