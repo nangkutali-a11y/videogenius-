@@ -1,8 +1,48 @@
+# .github/workflows/firebase-deploy.yml
+name: Deploy to Firebase (hosting + functions)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud using service account
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies for functions (if any)
+        run: |
+          if [ -f functions/package.json ]; then
+            echo "Installing functions dependencies..."
+            cd functions
+            npm install
+            cd -
+          else
+            echo "No functions/package.json found - skipping dependency install."
+          fi
+
+      - name: Install firebase-tools
+        run: npm install -g firebase-tools
+
       - name: Deploy to Firebase (hosting + functions)
         env:
           KEY_FILE: ${{ runner.temp }}/gcloud-key.json
         run: |
-          # write service account JSON to a temp file
+          # write service account JSON to a temp file (auth action already made credentials available)
           echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > "${KEY_FILE}"
           # activate service account for gcloud
           gcloud auth activate-service-account --key-file="${KEY_FILE}"
@@ -10,5 +50,5 @@
           gcloud config set project studio-5313059300-f1de0
           # ensure firebase-tools can use the application credentials
           export GOOGLE_APPLICATION_CREDENTIALS="${KEY_FILE}"
-          # run firebase deploy
+          # run firebase deploy (hosting + functions)
           firebase deploy --only hosting,functions --project studio-5313059300-f1de0
